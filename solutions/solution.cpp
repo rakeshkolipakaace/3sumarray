@@ -5,7 +5,7 @@ using namespace std;
 
 class Solution {
 public:
-// cpp solution for the problem 3 sum
+// cpp solution 
     vector<vector<int>> threeSum(vector<int>& nums) {
         vector<vector<int>> result;
         sort(nums.begin(), nums.end()); // Sort the array
