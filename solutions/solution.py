@@ -9,7 +9,7 @@ class Solution:
         nums.sort()  # Sort the array for two-pointer technique
 
         for i in range(n - 2):
-            if i > 0 and nums[i] == nums[i - 1]:  # Skip duplicates for i
+            if i > 0 and nums[i] == nums[i - 1]:  # Skip duplicates for 
                 continue
             
             left = i + 1
