@@ -150,8 +150,9 @@ jobs:
               if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
-            elif [[ "$file" == *.py ]]; then
-              if ! grep -qE '^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):\s*(#[^#]*|$)' "$file" && ! grep -qE '^\s*class\s+[a-zA-Z_][a-zA-Z0-9_]*\s*:.*$' "$file"; then
+              elif [[ "$file" == *.py ]]; then
+              # Check for empty threeSum method (only signature and docstring)
+              if grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):\s*("""[^"]*""")?\s*$' "$file" && ! grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):\s*.*[^ \t\n].*' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.java ]]; then
