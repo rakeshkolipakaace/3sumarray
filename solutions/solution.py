@@ -6,7 +6,7 @@ class Solution:
         if n < 3:
             return result
 
-        nums.sort()  # Sort the array for two-pointer technique
+        nums.sort()  
 
         for i in range(n - 2):
             if i > 0 and nums[i] == nums[i - 1]:  # Skip duplicates for i
