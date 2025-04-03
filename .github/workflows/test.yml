@@ -131,7 +131,7 @@ jobs:
             BEFORE_COMMIT=$(git rev-parse HEAD~1)
           fi
           
-          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep -E '^(solutions/|tests/)' || true)
+          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep -E '^(solutions/|tests/)')
           echo "Detected changed files: $CHANGED_FILES"
 
           if [ -z "$CHANGED_FILES" ]; then
@@ -147,15 +147,15 @@ jobs:
           INCOMPLETE_FILES=""
           for file in $CHANGED_FILES; do
             if [[ "$file" == *.c || "$file" == *.cpp ]]; then
-              if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]+$' "$file"; then
+              if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.py ]]; then
-              if ! grep -qE '^\s*(def|class)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(?.*\)?:\s*[^#]+$' "$file"; then
+              if ! grep -qE '^\s*(def|class)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(?.*\)?:\s*(#[^#]*|$)' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.java ]]; then
-              if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]+$' "$file"; then
+              if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             fi
@@ -172,10 +172,10 @@ jobs:
           DETECTED_LANGUAGES=""
           for file in $CHANGED_FILES; do
             case "$file" in
-              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} C" ;;
-              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} C++" ;;
-              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} Python" ;;
-              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} Java" ;;
+              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C " ;;
+              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ " ;;
+              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python " ;;
+              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java " ;;
             esac
           done
 
@@ -191,8 +191,8 @@ jobs:
       - name: Compile and Run C Tests
         if: contains(env.LANGUAGE, 'C')
         run: |
-          if ls tests/*.c 1> /dev/null 2>&1; then
-            gcc tests/*.c solutions/*.c -o test_runner
+          if [ -f tests/test.c ]; then
+            gcc tests/test.c solutions/solution.c -o test_runner
             echo "Running C Test Cases..."
             ./test_runner | tee -a test_results.log
           else
@@ -202,8 +202,8 @@ jobs:
       - name: Compile and Run C++ Tests
         if: contains(env.LANGUAGE, 'C++')
         run: |
-          if ls tests/*.cpp 1> /dev/null 2>&1; then
-            g++ tests/*.cpp solutions/*.cpp -o test_runner_cpp
+          if [ -f tests/test.cpp ]; then
+            g++ tests/test.cpp solutions/solution.cpp -o test_runner_cpp
             echo "Running C++ Test Cases..."
             ./test_runner_cpp | tee -a test_results.log
           else
@@ -213,9 +213,9 @@ jobs:
       - name: Run Python Tests
         if: contains(env.LANGUAGE, 'Python')
         run: |
-          if ls tests/*.py 1> /dev/null 2>&1; then
+          if [ -f tests/test.py ]; then
             echo "Running Python Test Cases..."
-            python3 -m unittest discover -s tests -p "*.py" | tee -a test_results.log
+            python3 tests/test.py | tee -a test_results.log
           else
             echo "No Python test file found. Exiting with failure."
             exit 1
@@ -224,12 +224,11 @@ jobs:
       - name: Compile and Run Java Tests
         if: contains(env.LANGUAGE, 'Java')
         run: |
-          JAVA_TESTS=$(find tests/ -name "*.java" | tr '\n' ' ')
-          if [ -n "$JAVA_TESTS" ]; then
+          if [ -f tests/Test.java ]; then
             mkdir -p out
-            javac -d out $JAVA_TESTS solutions/*.java
+            javac -d out tests/Test.java solutions/solution.java
             echo "Running Java Test Cases..."
-            java -cp out $(basename "$JAVA_TESTS" .java) | tee -a test_results.log
+            java -cp out tests.Test | tee -a test_results.log
           else
             echo "No Java test file found. Exiting with failure."
             exit 1

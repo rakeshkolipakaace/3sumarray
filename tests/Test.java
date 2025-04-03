@@ -1,15 +1,15 @@
-package tests;
+package tests;  // Ensure this matches your folder structure
 
-import solutions.solution;  // ✅ Corrected import (capitalized)
-
+import solutions.Solution;  // Import the Solution class
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 public class Test {
-    private static solution solution = new solution();  // ✅ Corrected class name
+    private static final Solution solution = new Solution();
 
     private static boolean listsEqual(List<List<Integer>> expected, List<List<Integer>> actual) {
+        if (expected == null || actual == null) return expected == actual;
         if (expected.size() != actual.size()) return false;
         return expected.containsAll(actual) && actual.containsAll(expected);
     }
@@ -17,7 +17,7 @@ public class Test {
     private static void runTest(String testName, int[] nums, List<List<Integer>> expected) {
         System.out.println("---------------------------------------------------");
         System.out.println("Running: " + testName);
-        System.out.println("Input: " + Arrays.toString(nums));
+        System.out.println("Input: " + (nums == null ? "null" : Arrays.toString(nums)));
 
         List<List<Integer>> result = solution.threeSum(nums);
         boolean passed = listsEqual(expected, result);
