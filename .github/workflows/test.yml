@@ -151,10 +151,15 @@ jobs:
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
               elif [[ "$file" == *.py ]]; then
-              # Check for empty threeSum method (only signature and docstring)
-              if grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):\s*("""[^"]*""")?\s*$' "$file" && ! grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):\s*.*[^ \t\n].*' "$file"; then
-                INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-              fi
+              # Check if the file contains only the base code (signature + optional docstring)
+              if grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):' "$file"; then
+                # Look for the line number where threeSum is defined
+                LINE_NUM=$(grep -nE '^\s*def\s+threeSum\s*\(self,\s*nums\):' "$file" | cut -d: -f1)
+                # Check for any implementation after the method definition (e.g., return, if, for, while, etc.)
+                if ! tail -n +$LINE_NUM "$file" | grep -qE '^\s*(return|if|for|while|result|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\(|[^ \t\n#]).*'; then
+                  INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
+                fi
+             
             elif [[ "$file" == *.java ]]; then
               if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
