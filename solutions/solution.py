@@ -1,20 +1,38 @@
-class Solution(object):
+class Solution:
     def threeSum(self, nums):
-        """
-        :type nums: List[int]
-        :rtype: List[List[int]]
-        """
-        if len(nums) < 3:
-            return []
-        nums.sort()
-        res = set()
-        for i, v in enumerate(nums[:-2]):
-            if i >= 1 and v == nums[i-1]:
+        result = []
+        n = len(nums)
+        
+        if n < 3:
+            return result
+
+        nums.sort()  # Sort the array for two-pointer technique
+
+        for i in range(n - 2):
+            if i > 0 and nums[i] == nums[i - 1]:  # Skip duplicates for i
                 continue
-            d = {}
-            for x in nums[i+1:]:
-                if x not in d:
-                    d[-v-x] = 1
+            
+            left = i + 1
+            right = n - 1
+            target = -nums[i]
+
+            while left < right:
+                sum = nums[left] + nums[right]
+                
+                if sum == target:
+                    result.append([nums[i], nums[left], nums[right]])
+                    
+                    # Skip duplicates for left and right
+                    while left < right and nums[left] == nums[left + 1]:
+                        left += 1
+                    while left < right and nums[right] == nums[right - 1]:
+                        right -= 1
+                    
+                    left += 1
+                    right -= 1
+                elif sum < target:
+                    left += 1
                 else:
-                    res.add((v, -v-x, x))
-        return map(list, res)
+                    right -= 1
+        
+        return result
