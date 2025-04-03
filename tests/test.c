@@ -87,7 +87,7 @@ void freeResult(int** result, int returnSize, int* returnColumnSizes) {
         free(result[i]);
     }
     free(result);
-    if (returnColumnSizes) free(returnColumnSizes);
+    free(returnColumnSizes);
 }
 
 // Function to compare two arrays of arrays for equality
@@ -105,7 +105,7 @@ int areArraysEqual(int** expected, int expectedSize, int* expectedColumnSizes,
 
 // Helper function to create expected output
 int** createExpected(int* triplets, int size) {
-    if (size == 0) return NULL;
+    if (size == 0 || triplets == NULL) return NULL;
     int** result = (int**)malloc(size * sizeof(int*));
     for (int i = 0; i < size; i++) {
         result[i] = (int*)malloc(3 * sizeof(int));
@@ -134,11 +134,10 @@ void runTest(int* nums, int numsSize, int** expected, int expectedSize, int* exp
     printResult(result, returnSize, returnColumnSizes);
 
     int passed = areArraysEqual(expected, expectedSize, expectedColumnSizes,
-                              result, returnSize, returnColumnSizes);
+                                result, returnSize, returnColumnSizes);
     printf("Test %d: %s\n", testNumber, passed ? "✅ PASSED" : "❌ FAILED");
 
     freeResult(result, returnSize, returnColumnSizes);
-    freeResult(expected, expectedSize, expectedColumnSizes);
 }
 
 int main() {
@@ -158,7 +157,7 @@ int main() {
         { (int[]){-1, -2, -3, -4}, 4, NULL, 0, NULL },
         { (int[]){1, 2, 3, 4}, 4, NULL, 0, NULL },
         { (int[]){-105, 0, 105}, 3, (int[]){-105, 0, 105}, 1, (int[]){3} },
-        { NULL, 0, NULL, 0, NULL },  // Fixed this case
+        { NULL, 0, NULL, 0, NULL },
         { (int[]){0, 0, 0, 0, 0}, 5, (int[]){0, 0, 0}, 1, (int[]){3} }
     };
 
@@ -167,6 +166,7 @@ int main() {
     for (int i = 0; i < numTests; i++) {
         int** expected = createExpected(tests[i].expectedTriplets, tests[i].expectedSize);
         runTest(tests[i].nums, tests[i].numsSize, expected, tests[i].expectedSize, tests[i].expectedColumnSizes, i + 1);
+        freeResult(expected, tests[i].expectedSize, NULL);  // Fixed double-free issue
     }
 
     return 0;
