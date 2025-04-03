@@ -1,5 +1,5 @@
 class Solution(object):
-    def threeSum(self, nums):
+    def threeSum(self, nums): 
         """
         :type nums: List[int]
         :rtype: List[List[int]]
@@ -17,4 +17,4 @@ class Solution(object):
                     d[-v-x] = 1
                 else:
                     res.add((v, -v-x, x))
-        return map(list, res)
+        return map(list, res) #return a list of lists
