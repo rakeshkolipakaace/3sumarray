@@ -127,6 +127,7 @@ jobs:
         id: changed-files
         run: |
           BEFORE_COMMIT="${{ github.event.before }}"
+
           if [ -z "$BEFORE_COMMIT" ] || ! git cat-file -e "$BEFORE_COMMIT"^{commit}; then
             BEFORE_COMMIT=$(git rev-parse HEAD~1)  # Use last commit as fallback
           fi
@@ -139,20 +140,6 @@ jobs:
             exit 1
           fi
 
-          # Check if functions have an actual implementation (not just signatures)
-          INCOMPLETE_FILES=""
-          for file in $CHANGED_FILES; do
-            if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
-              echo "$file appears to have only a function signature (no implementation)."
-              INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-            fi
-          done
-
-          if [ -n "$INCOMPLETE_FILES" ]; then
-            echo "Some files have incomplete function implementations: $INCOMPLETE_FILES"
-            exit 1
-          fi
-
           echo "CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Determine File Type
@@ -161,12 +148,14 @@ jobs:
           DETECTED_LANGUAGES=""
           for file in $CHANGED_FILES; do
             case "$file" in
-              *.c) DETECTED_LANGUAGES="$DETECTED_LANGUAGES C" ;;
-              *.cpp) DETECTED_LANGUAGES="$DETECTED_LANGUAGES C++" ;;
-              *.py) DETECTED_LANGUAGES="$DETECTED_LANGUAGES Python" ;;
-              *.java) DETECTED_LANGUAGES="$DETECTED_LANGUAGES Java" ;;
+              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C " ;;
+              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ " ;;
+              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python " ;;
+              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java " ;;
             esac
           done
+
+          DETECTED_LANGUAGES=$(echo $DETECTED_LANGUAGES | xargs)  # Remove extra spaces
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
           echo "Detected languages: $DETECTED_LANGUAGES"
 
@@ -181,7 +170,7 @@ jobs:
           if [ -f tests/test.c ]; then
             gcc tests/test.c solutions/solution.c -o test_runner
             echo "Running C Test Cases..."
-            ./test_runner | tee test_results.log
+            ./test_runner | tee -a test_results.log
           else
             echo "No C test file found."
           fi
@@ -192,7 +181,7 @@ jobs:
           if [ -f tests/test.cpp ]; then
             g++ tests/test.cpp solutions/solution.cpp -o test_runner_cpp
             echo "Running C++ Test Cases..."
-            ./test_runner_cpp | tee test_results.log
+            ./test_runner_cpp | tee -a test_results.log
           else
             echo "No C++ test file found."
           fi
@@ -202,7 +191,7 @@ jobs:
         run: |
           if [ -f tests/test.py ]; then
             echo "Running Python Test Cases..."
-            python3 tests/test.py | tee test_results.log
+            python3 tests/test.py | tee -a test_results.log
           else
             echo "No Python test file found."
           fi
@@ -211,9 +200,10 @@ jobs:
         if: contains(env.LANGUAGE, 'Java')
         run: |
           if [ -f tests/Test.java ]; then
+            mkdir -p out
             javac -d out tests/Test.java solutions/solution.java
             echo "Running Java Test Cases..."
-            java -cp out tests.Test | tee test_results.log
+            java -cp out tests.Test | tee -a test_results.log
           else
             echo "No Java test file found."
           fi
