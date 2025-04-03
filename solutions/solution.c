@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Comparison
+// Comparison of 2
 int compare(const void *a, const void *b) {
     return (*(int*)a - *(int*)b);
 }
