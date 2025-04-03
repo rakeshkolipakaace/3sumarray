@@ -1,4 +1,4 @@
-class Solution(object):
+class solution(object):
     def threeSum(self, nums):
         """
         :type nums: List[int]
