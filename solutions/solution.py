@@ -17,4 +17,4 @@ class Solution(object):
                     d[-v-x] = 1
                 else:
                     res.add((v, -v-x, x))
-        return map(list, res) #return a list of lists
+        return map(list, res) #return a list of lists `res`
