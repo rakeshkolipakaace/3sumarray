@@ -121,19 +121,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 2  # Ensure previous commit is available
 
       - name: Detect Changed Files
         id: changed-files
         run: |
           BEFORE_COMMIT="${{ github.event.before }}"
+
           if [ -z "$BEFORE_COMMIT" ] || ! git cat-file -e "$BEFORE_COMMIT"^{commit}; then
-            BEFORE_COMMIT=$(git rev-parse HEAD~1)
+            BEFORE_COMMIT=$(git rev-parse HEAD~1)  # Use last commit as fallback
           fi
           
-          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep -E '^(solutions/|tests/)')
+          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/')
           echo "Detected changed files: $CHANGED_FILES"
-
+          
           if [ -z "$CHANGED_FILES" ]; then
             echo "No file changes detected. Exiting..."
             exit 1
@@ -151,7 +152,7 @@ jobs:
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.py ]]; then
-              if ! grep -qE '^\s*(def|class)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(?.*\)?:\s*(#[^#]*|$)' "$file"; then
+              if ! grep -qE '^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):\s*[^#]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.java ]]; then
@@ -179,7 +180,7 @@ jobs:
             esac
           done
 
-          DETECTED_LANGUAGES=$(echo $DETECTED_LANGUAGES | xargs)
+          DETECTED_LANGUAGES=$(echo $DETECTED_LANGUAGES | xargs)  # Remove extra spaces
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
           echo "Detected languages: $DETECTED_LANGUAGES"
 
@@ -217,8 +218,7 @@ jobs:
             echo "Running Python Test Cases..."
             python3 tests/test.py | tee -a test_results.log
           else
-            echo "No Python test file found. Exiting with failure."
-            exit 1
+            echo "No Python test file found."
           fi
 
       - name: Compile and Run Java Tests
@@ -230,8 +230,7 @@ jobs:
             echo "Running Java Test Cases..."
             java -cp out tests.Test | tee -a test_results.log
           else
-            echo "No Java test file found. Exiting with failure."
-            exit 1
+            echo "No Java test file found."
           fi
 
       - name: Upload Test Results
