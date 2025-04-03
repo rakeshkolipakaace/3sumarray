@@ -286,6 +286,7 @@ jobs:
         run: |
           INCOMPLETE_FILES=""
           for file in $CHANGED_FILES; do
+            echo "Checking file: $file"
             if [[ "$file" == *.c || "$file" == *.cpp ]]; then
               if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
@@ -302,7 +303,6 @@ jobs:
                 LINE_NUM=$(grep -nE '^\s*public\s+List<List<Integer>>\s+threeSum\s*\(int\[\]\s+nums\)\s*\{' "$file" | cut -d: -f1)
                 END_LINE=$(tail -n +$LINE_NUM "$file" | grep -nE '^\s*\}' | head -n 1 | cut -d: -f1)
                 if [ -n "$END_LINE" ]; then
-                  # Check for implementation between the method definition and closing brace
                   IMPLEMENTATION=$(tail -n +$((LINE_NUM + 1)) "$file" | head -n $((END_LINE - 2)) | grep -vE '^\s*(//|/\*|*|/|\*\/|$)' | grep -E '^\s*[^\s#].*')
                   if [ -z "$IMPLEMENTATION" ] || ! echo "$IMPLEMENTATION" | grep -qE '^\s*(return\s|if\s|for\s|while\s|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\()(.*)'; then
                     INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
@@ -332,7 +332,7 @@ jobs:
             esac
           done
 
-          DETECTED_LANGUAGES=$(echo "$DETECTED_LANGUAGES" | xargs)  # Remove extra spaces
+          DETECTED_LANGUAGES=$(echo "$DETECTED_LANGUAGES" | xargs)
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
           echo "Detected languages: $DETECTED_LANGUAGES"
 
