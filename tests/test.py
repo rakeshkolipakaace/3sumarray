@@ -49,7 +49,6 @@
 
 
 
-
 import unittest
 import sys
 import os
@@ -87,13 +86,12 @@ class TestThreeSum(unittest.TestCase):
         for i, (nums, expected) in enumerate(test_cases):
             print("---------------------------------------------------")
             print(f"Running: Test {i + 1}")
-            print(f"Input: {nums}")
+            print(f"Input: {nums if len(nums) <= 10 else f'[{nums[0]}, ..., {nums[-1]}] (length: {len(nums)})'}")
             print(f"Expected Output: {expected}")
 
             result = list(self.solution.threeSum(nums))  # Convert map to list
-            print(f"Actual Output: {result}")
-
             if expected != "Too many possible results":
+                print(f"Actual Output: {result}")
                 result.sort()  # Sort the result for consistent comparison
                 expected.sort()  # Sort the expected output for comparison
                 passed = result == expected
@@ -102,7 +100,7 @@ class TestThreeSum(unittest.TestCase):
                     print(f"Expected: {expected}")
                     print(f"Got: {result}")
             else:
-                # For the performance case, just check that the method doesn't crash
+                # For the performance case, don't print the large output
                 passed = isinstance(result, list)
                 print(f"Test {i + 1}: {'✅ PASSED (Large Input)' if passed else '❌ FAILED'}")
                 if not passed:
