@@ -3,7 +3,6 @@
 
 // Comparison function for qsort
 int compare(const void *a, const void *b) {
-    //  c solution
     return (*(int*)a - *(int*)b);
 }
 

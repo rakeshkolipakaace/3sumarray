@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Declare the function from solution.c
+// Function prototype from solution.c
 int** threeSum(int* nums, int numsSize, int* returnSize, int** returnColumnSizes);
 
 // Function to print the output
@@ -31,20 +31,20 @@ int main() {
     int returnSize;
     int* returnColumnSizes;
 
-    int testCases[][6] = {
-        {-1, 0, 1, 2, -1, -4},  // Test Case 1
-        {0, 1, 1},              // Test Case 2
-        {0, 0, 0},              // Test Case 3
-        {1, 2, -3},             // Test Case 4
-        {1, 1, 1, 1},           // Test Case 5
-    };
+    // Define test cases
+    int test1[] = {-1, 0, 1, 2, -1, -4};  // Expected: [[-1, -1, 2], [-1, 0, 1]]
+    int test2[] = {0, 1, 1};              // Expected: []
+    int test3[] = {0, 0, 0};              // Expected: [[0, 0, 0]]
+    int test4[] = {1, 2, -3};             // Expected: [[-3, 1, 2]]
+    int test5[] = {1, 1, 1, 1};           // Expected: []
 
+    int* tests[] = {test1, test2, test3, test4, test5};
     int testSizes[] = {6, 3, 3, 3, 4};
     int numTests = sizeof(testSizes) / sizeof(testSizes[0]);
 
     for (int i = 0; i < numTests; i++) {
         printf("Test Case %d:\n", i + 1);
-        int** result = threeSum(testCases[i], testSizes[i], &returnSize, &returnColumnSizes);
+        int** result = threeSum(tests[i], testSizes[i], &returnSize, &returnColumnSizes);
         printResult(result, returnSize, returnColumnSizes);
         freeResult(result, returnSize, returnColumnSizes);
     }
