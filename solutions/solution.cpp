@@ -5,7 +5,7 @@ using namespace std;
 
 class Solution {
 public:
-// cpp solution for 3 sum problem from leetcode 
+// cpp solution for 3 sum problem from leetcode  gh
     vector<vector<int>> threeSum(vector<int>& nums) {
         vector<vector<int>> result;
         sort(nums.begin(), nums.end()); // Sort the array
