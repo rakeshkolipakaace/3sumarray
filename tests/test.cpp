@@ -3,43 +3,67 @@
 #include "../solutions/solution.cpp"
 using namespace std;
 
-void printResult(const vector<vector<int>>& results) {
+// Helper function to print a vector of vectors
+void printVector(const vector<vector<int>>& vec) {
     cout << "[";
-    for (size_t i = 0; i < results.size(); i++) {
+    for (size_t i = 0; i < vec.size(); i++) {
         cout << "[";
-        for (size_t j = 0; j < results[i].size(); j++) {
-            cout << results[i][j];
-            if (j < results[i].size() - 1) cout << ", ";
+        for (size_t j = 0; j < vec[i].size(); j++) {
+            cout << vec[i][j];
+            if (j < vec[i].size() - 1) cout << ",";
         }
         cout << "]";
-        if (i < results.size() - 1) cout << ", ";
+        if (i < vec.size() - 1) cout << ",";
     }
-    cout << "]\n";
+    cout << "]" << endl;
 }
 
-int main() {
+// Function to check if the test case passed
+bool test(vector<int> nums, vector<vector<int>> expected) {
     Solution solution;
+    vector<vector<int>> result = solution.threeSum(nums);
+    
+    sort(result.begin(), result.end());
+    sort(expected.begin(), expected.end());
 
-    vector<vector<int>> test_cases = {
-        {-1, 0, 1, 2, -1, -4},  // Expected: [[-1, -1, 2], [-1, 0, 1]]
-        {0, 1, 1},              // Expected: []
-        {0, 0, 0},              // Expected: [[0, 0, 0]]
-        {-3, -2, -1, 0, 1, 2, 3},  // Expected: [[-3, 0, 3], [-3, 1, 2], [-2, -1, 3], [-2, 0, 2], [-1, 0, 1]]
-        {1},                    // Edge Case: Expected []
-        {1, -1},                // Edge Case: Expected []
-        {-1000, -500, 0, 500, 1000},  // Expected: [[-1000, 0, 1000], [-500, 0, 500]]
-        {-2, 0, 1, 1, 2, 2, -1, -1}, // Expected: [[-2, 0, 2], [-2, 1, 1], [-1, -1, 2], [-1, 0, 1]]
-        {100, 200, -300, 1, -1, 2, -2}, // Expected: [[-300, 100, 200], [-2, 0, 2], [-1, 0, 1]]
-    };
+    bool passed = (result == expected);
+    
+    cout << "Input: " << endl;
+    printVector({nums});
+    
+    cout << "Output: " << endl;
+    printVector(result);
+    
+    cout << "Expected: " << endl;
+    printVector(expected);
+    
+    cout << (passed ? "✅ Test Passed!" : "❌ Test Failed!") << endl;
+    cout << "---------------------------------------------" << endl;
+    return passed;
+}
 
-    for (const auto& test_case : test_cases) {
-        vector<int> nums = test_case;
-        vector<vector<int>> result = solution.threeSum(nums);
-        cout << "Input: ";
-        printResult({test_case});
-        cout << "Output: ";
-        printResult(result);
-        cout << "--------------------------------------\n";
+// Main function to run all test cases
+int main() {
+    bool all_passed = true;
+    
+    all_passed &= test({-1, 0, 1, 2, -1, -4}, {{-1, -1, 2}, {-1, 0, 1}});
+    all_passed &= test({0, 1, 1}, {});
+    all_passed &= test({0, 0, 0}, {{0, 0, 0}});
+    all_passed &= test({-4, -1, -1, 0, 1, 2}, {{-4, 1, 2}, {-1, -1, 2}, {-1, 0, 1}});
+
+    all_passed &= test({1, -1}, {});
+    all_passed &= test({-4, -2, -2, -2, 0, 1, 2, 2, 2, 3, 3, 4, 4, 6, 6}, 
+                       {{-4, -2, 6}, {-4, 0, 4}, {-4, 1, 3}, {-4, 2, 2}, {-2, -2, 4}, {-2, 0, 2}});
+    all_passed &= test({0, 0, 0, 0, 0, 0}, {{0, 0, 0}});
+    all_passed &= test({-5, -3, -1, -2, -4}, {});
+    all_passed &= test({1, 2, 3, 4, 5}, {});
+    all_passed &= test({-2, 0, 2, -2, 1, 1}, {{-2, 0, 2}, {-2, 1, 1}});
+    all_passed &= test({-4, -1, -1, 0, 1, 2, 3}, {{-4, 1, 3}, {-1, -1, 2}, {-1, 0, 1}});
+
+    if (all_passed) {
+        cout << "🎉 All test cases passed successfully! 🎉" << endl;
+    } else {
+        cout << "❌ Some test cases failed. Please check the failed cases!" << endl;
     }
 
     return 0;
