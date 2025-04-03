@@ -1,5 +1,5 @@
 import unittest
-from solutions.solution import Solution
+from solutions.solution import solution
 
 class TestThreeSum(unittest.TestCase):
     def setUp(self):
