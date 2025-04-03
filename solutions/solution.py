@@ -1,5 +1,5 @@
 class Solution:
-    #python code
+    #python code solution
     
     def threeSum(self, nums: list[int]) -> list[list[int]]:
        
