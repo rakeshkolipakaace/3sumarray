@@ -143,12 +143,14 @@ jobs:
           fi
 
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
-          echo "::set-output name=changed_files::$CHANGED_FILES"
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
       - name: Determine File Type
         id: determine-file
         run: |
-          for file in $CHANGED_FILES; do
+          # Split CHANGED_FILES into an array and iterate over it
+          IFS=' ' read -r -a files <<< "$CHANGED_FILES"
+          for file in "${files[@]}"; do
             case "$file" in
               *.c) echo "language=C" >> $GITHUB_ENV ;;
               *.cpp) echo "language=C++" >> $GITHUB_ENV ;;
