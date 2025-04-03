@@ -4,5 +4,5 @@ class Solution(object):
         :type nums: List[int]
         :rtype: List[List[int]]
         """
-        #  write your code
+        #  write your code for 3 sum
         
