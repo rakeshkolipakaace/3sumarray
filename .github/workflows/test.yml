@@ -104,6 +104,146 @@
 
 
 
+# name: Run Code Tests
+
+# on:
+#   push:
+#     paths:
+#       - "solutions/**"
+#   pull_request:
+#     paths:
+#       - "tests/**"
+
+# jobs:
+#   run-tests:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 2  # Ensure previous commit is available
+
+#       - name: Detect Changed Files
+#         id: changed-files
+#         run: |
+#           BEFORE_COMMIT="${{ github.event.before }}"
+#           if [ -z "$BEFORE_COMMIT" ] || ! git cat-file -e "$BEFORE_COMMIT"^{commit}; then
+#             BEFORE_COMMIT=$(git rev-parse HEAD~1)  # Use last commit as fallback
+#           fi
+          
+#           CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/')
+#           echo "Detected changed files: $CHANGED_FILES"
+          
+#           if [ -z "$CHANGED_FILES" ]; then
+#             echo "No file changes detected. Exiting..."
+#             exit 1
+#           fi
+
+#           echo "CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> $GITHUB_ENV
+
+#       - name: Check for Empty Implementations
+#         id: check-implementation
+#         run: |
+#           INCOMPLETE_FILES=""
+#           for file in $CHANGED_FILES; do
+#             if [[ "$file" == *.c || "$file" == *.cpp ]]; then
+#               if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
+#                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
+#               fi
+#             elif [[ "$file" == *.py ]]; then
+#               if ! grep -qE '^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):\s*(#[^#]*|$)' "$file" && ! grep -qE '^\s*class\s+[a-zA-Z_][a-zA-Z0-9_]*\s*:.*$' "$file"; then
+#                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
+#               fi
+#             elif [[ "$file" == *.java ]]; then
+#               if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]*$' "$file"; then
+#                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
+#               fi
+#             fi
+#           done
+
+#           if [ -n "$INCOMPLETE_FILES" ]; then
+#             echo "Some files only contain function signatures without implementation: $INCOMPLETE_FILES"
+#             exit 1
+#           fi
+
+#       - name: Determine File Type
+#         id: determine-file
+#         run: |
+#           DETECTED_LANGUAGES=""
+#           for file in $CHANGED_FILES; do
+#             case "$file" in
+#               *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C " ;;
+#               *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ " ;;
+#               *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python " ;;
+#               *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java " ;;
+#             esac
+#           done
+
+#           DETECTED_LANGUAGES=$(echo $DETECTED_LANGUAGES | xargs)  # Remove extra spaces
+#           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
+#           echo "Detected languages: $DETECTED_LANGUAGES"
+
+#       - name: Install Dependencies
+#         run: |
+#           sudo apt update
+#           sudo apt install -y gcc g++ python3 openjdk-17-jdk
+
+#       - name: Compile and Run C Tests
+#         if: contains(env.LANGUAGE, 'C')
+#         run: |
+#           if [ -f tests/test.c ]; then
+#             gcc tests/test.c solutions/solution.c -o test_runner
+#             echo "Running C Test Cases..."
+#             ./test_runner | tee -a test_results.log
+#           else
+#             echo "No C test file found."
+#           fi
+
+#       - name: Compile and Run C++ Tests
+#         if: contains(env.LANGUAGE, 'C++')
+#         run: |
+#           if [ -f tests/test.cpp ]; then
+#             g++ tests/test.cpp solutions/solution.cpp -o test_runner_cpp
+#             echo "Running C++ Test Cases..."
+#             ./test_runner_cpp | tee -a test_results.log
+#           else
+#             echo "No C++ test file found."
+#           fi
+
+#       - name: Run Python Tests
+#         if: contains(env.LANGUAGE, 'Python')
+#         run: |
+#           if [ -f tests/test.py ]; then
+#             echo "Running Python Test Cases..."
+#             python3 tests/test.py | tee -a test_results.log
+#           else
+#             echo "No Python test file found."
+#           fi
+
+#       - name: Compile and Run Java Tests
+#         if: contains(env.LANGUAGE, 'Java')
+#         run: |
+#           if [ -f tests/Test.java ]; then
+#             mkdir -p out
+#             javac -d out tests/Test.java solutions/solution.java
+#             echo "Running Java Test Cases..."
+#             java -cp out tests.Test | tee -a test_results.log
+#           else
+#             echo "No Java test file found."
+#           fi
+
+#       - name: Upload Test Results
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-results
+#           path: test_results.log
+
+
+
+
+
+
 name: Run Code Tests
 
 on:
@@ -135,7 +275,7 @@ jobs:
           echo "Detected changed files: $CHANGED_FILES"
           
           if [ -z "$CHANGED_FILES" ]; then
-            echo "No file changes detected. Exiting..."
+            echo "No file changes detected in solutions/ directory. Exiting..."
             exit 1
           fi
 
@@ -150,7 +290,8 @@ jobs:
               if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
-              elif [[ "$file" == *.py ]]; then
+            fi
+            elif [[ "$file" == *.py ]]; then
               # Check if the file contains only the base code (signature + optional docstring)
               if grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):' "$file"; then
                 # Look for the line number where threeSum is defined
@@ -159,7 +300,7 @@ jobs:
                 if ! tail -n +$LINE_NUM "$file" | grep -qE '^\s*(return|if|for|while|result|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\(|[^ \t\n#]).*'; then
                   INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
                 fi
-             
+              fi
             elif [[ "$file" == *.java ]]; then
               if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
@@ -231,7 +372,7 @@ jobs:
         run: |
           if [ -f tests/Test.java ]; then
             mkdir -p out
-            javac -d out tests/Test.java solutions/solution.java
+            javac -d out tests/Test.java solutions/Solution.java
             echo "Running Java Test Cases..."
             java -cp out tests.Test | tee -a test_results.log
           else
