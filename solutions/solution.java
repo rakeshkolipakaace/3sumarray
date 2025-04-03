@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class solution {  // ✅ Class name matches "solution.java"
+// this is java solution
     public List<List<Integer>> threeSum(int[] nums) {
         List<List<Integer>> result = new ArrayList<>();
         if (nums == null || nums.length < 3) return result;
