@@ -127,7 +127,6 @@ jobs:
         id: changed-files
         run: |
           BEFORE_COMMIT="${{ github.event.before }}"
-
           if [ -z "$BEFORE_COMMIT" ] || ! git cat-file -e "$BEFORE_COMMIT"^{commit}; then
             BEFORE_COMMIT=$(git rev-parse HEAD~1)  # Use last commit as fallback
           fi
@@ -152,7 +151,7 @@ jobs:
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.py ]]; then
-              if ! grep -qE '^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):\s*[^#]*$' "$file"; then
+              if ! grep -qE '^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):\s*(#[^#]*|$)' "$file" && ! grep -qE '^\s*class\s+[a-zA-Z_][a-zA-Z0-9_]*\s*:.*$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.java ]]; then
