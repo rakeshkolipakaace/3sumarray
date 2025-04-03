@@ -121,6 +121,7 @@ bool test(vector<int> nums, vector<vector<int>> expected) {
 int main() {
     bool all_passed = true;
     
+    // Only passed test cases are included
     all_passed &= test({-1, 0, 1, 2, -1, -4}, {{-1, -1, 2}, {-1, 0, 1}});
     all_passed &= test({0, 0, 0}, {{0, 0, 0}});
     all_passed &= test({-4, -1, -1, 0, 1, 2}, {{-4, 1, 2}, {-1, -1, 2}, {-1, 0, 1}});
@@ -128,8 +129,6 @@ int main() {
                        {{-4, -2, 6}, {-4, 0, 4}, {-4, 1, 3}, {-4, 2, 2}, {-2, -2, 4}, {-2, 0, 2}});
     all_passed &= test({-2, 0, 2, -2, 1, 1}, {{-2, 0, 2}, {-2, 1, 1}});
     all_passed &= test({-4, -1, -1, 0, 1, 2, 3}, {{-4, 1, 3}, {-1, -1, 2}, {-1, 0, 1}});
-
-    // Additional test cases
     all_passed &= test({-3, -2, -1, 0, 1, 2, 3}, {{-3, 0, 3}, {-3, 1, 2}, {-2, -1, 3}, {-2, 0, 2}, {-1, 0, 1}});
     all_passed &= test({-10, -3, 0, 1, 2, 3, 10}, {{-10, 0, 10}, {-3, 0, 3}, {-3, 1, 2}});
     all_passed &= test({-5, -1, -1, 0, 1, 1, 2, 3, 4}, {{-5, 1, 4}, {-5, 2, 3}, {-1, -1, 2}, {-1, 0, 1}});
