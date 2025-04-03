@@ -1,5 +1,11 @@
 import unittest
-from solutions.solution import solution
+import sys
+import os
+
+# Ensure Python finds the 'solutions' package
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from solutions.solution import Solution  # ✅ Correct import
 
 class TestThreeSum(unittest.TestCase):
     def setUp(self):
