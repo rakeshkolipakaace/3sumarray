@@ -1,5 +1,5 @@
 class Solution:
-    #python code  of problem 3 sum
+    #python code  of problem 3 sum from leet code
     
     def threeSum(self, nums: list[int]) -> list[list[int]]:
        
