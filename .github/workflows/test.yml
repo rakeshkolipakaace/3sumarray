@@ -121,19 +121,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Ensure previous commit is available
+          fetch-depth: 2
 
       - name: Detect Changed Files
         id: changed-files
         run: |
           BEFORE_COMMIT="${{ github.event.before }}"
           if [ -z "$BEFORE_COMMIT" ] || ! git cat-file -e "$BEFORE_COMMIT"^{commit}; then
-            BEFORE_COMMIT=$(git rev-parse HEAD~1)  # Use last commit as fallback
+            BEFORE_COMMIT=$(git rev-parse HEAD~1)
           fi
           
-          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/')
+          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep -E '^(solutions/|tests/)' || true)
           echo "Detected changed files: $CHANGED_FILES"
-          
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "No file changes detected. Exiting..."
             exit 1
@@ -147,15 +147,15 @@ jobs:
           INCOMPLETE_FILES=""
           for file in $CHANGED_FILES; do
             if [[ "$file" == *.c || "$file" == *.cpp ]]; then
-              if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]*[^/]*$' "$file"; then
+              if ! grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s+\**[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)\s*\{[^}]+$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.py ]]; then
-              if ! grep -qE '^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):\s*(#[^#]*|$)' "$file" && ! grep -qE '^\s*class\s+[a-zA-Z_][a-zA-Z0-9_]*\s*:.*$' "$file"; then
+              if ! grep -qE '^\s*(def|class)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(?.*\)?:\s*[^#]+$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             elif [[ "$file" == *.java ]]; then
-              if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]*$' "$file"; then
+              if ! grep -qE '^\s*(public|private|protected)?\s*(static)?\s*\w+\s+\w+\s*\(.*\)\s*\{[^}]+$' "$file"; then
                 INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
               fi
             fi
@@ -172,14 +172,14 @@ jobs:
           DETECTED_LANGUAGES=""
           for file in $CHANGED_FILES; do
             case "$file" in
-              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C " ;;
-              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ " ;;
-              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python " ;;
-              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java " ;;
+              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} C" ;;
+              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} C++" ;;
+              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} Python" ;;
+              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} Java" ;;
             esac
           done
 
-          DETECTED_LANGUAGES=$(echo $DETECTED_LANGUAGES | xargs)  # Remove extra spaces
+          DETECTED_LANGUAGES=$(echo $DETECTED_LANGUAGES | xargs)
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
           echo "Detected languages: $DETECTED_LANGUAGES"
 
@@ -191,8 +191,8 @@ jobs:
       - name: Compile and Run C Tests
         if: contains(env.LANGUAGE, 'C')
         run: |
-          if [ -f tests/test.c ]; then
-            gcc tests/test.c solutions/solution.c -o test_runner
+          if ls tests/*.c 1> /dev/null 2>&1; then
+            gcc tests/*.c solutions/*.c -o test_runner
             echo "Running C Test Cases..."
             ./test_runner | tee -a test_results.log
           else
@@ -202,8 +202,8 @@ jobs:
       - name: Compile and Run C++ Tests
         if: contains(env.LANGUAGE, 'C++')
         run: |
-          if [ -f tests/test.cpp ]; then
-            g++ tests/test.cpp solutions/solution.cpp -o test_runner_cpp
+          if ls tests/*.cpp 1> /dev/null 2>&1; then
+            g++ tests/*.cpp solutions/*.cpp -o test_runner_cpp
             echo "Running C++ Test Cases..."
             ./test_runner_cpp | tee -a test_results.log
           else
@@ -213,23 +213,26 @@ jobs:
       - name: Run Python Tests
         if: contains(env.LANGUAGE, 'Python')
         run: |
-          if [ -f tests/test.py ]; then
+          if ls tests/*.py 1> /dev/null 2>&1; then
             echo "Running Python Test Cases..."
-            python3 tests/test.py | tee -a test_results.log
+            python3 -m unittest discover -s tests -p "*.py" | tee -a test_results.log
           else
-            echo "No Python test file found."
+            echo "No Python test file found. Exiting with failure."
+            exit 1
           fi
 
       - name: Compile and Run Java Tests
         if: contains(env.LANGUAGE, 'Java')
         run: |
-          if [ -f tests/Test.java ]; then
+          JAVA_TESTS=$(find tests/ -name "*.java" | tr '\n' ' ')
+          if [ -n "$JAVA_TESTS" ]; then
             mkdir -p out
-            javac -d out tests/Test.java solutions/solution.java
+            javac -d out $JAVA_TESTS solutions/*.java
             echo "Running Java Test Cases..."
-            java -cp out tests.Test | tee -a test_results.log
+            java -cp out $(basename "$JAVA_TESTS" .java) | tee -a test_results.log
           else
-            echo "No Java test file found."
+            echo "No Java test file found. Exiting with failure."
+            exit 1
           fi
 
       - name: Upload Test Results
