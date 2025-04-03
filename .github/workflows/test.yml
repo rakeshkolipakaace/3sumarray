@@ -25,12 +25,12 @@ jobs:
             BEFORE_COMMIT=$(git rev-parse HEAD~1)  # Use last commit as fallback
           fi
           
-          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/')
+          CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/' || true)
           echo "Detected changed files: $CHANGED_FILES"
-          
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "No file changes detected. Exiting..."
-            exit 1
+            exit 0  # Change exit 1 to exit 0 to avoid failure
           fi
 
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
@@ -48,6 +48,7 @@ jobs:
             esac
           done
 
+      # Install dependencies based on file type
       - name: Install C Dependencies
         if: env.language == 'C'
         run: sudo apt update && sudo apt install -y gcc
@@ -58,18 +59,19 @@ jobs:
 
       - name: Install Python Dependencies
         if: env.language == 'Python'
-        run: sudo apt update && sudo apt install -y python3
+        run: sudo apt update && sudo apt install -y python3 python3-pip
 
       - name: Install Java Dependencies
         if: env.language == 'Java'
         run: sudo apt update && sudo apt install -y openjdk-17-jdk
 
+      # Run tests based on file type
       - name: Compile and Run C Tests
         if: env.language == 'C'
         run: |
           gcc tests/test.c -o test_runner
           echo "Running C Test Cases..."
-          ./test_runner | tee test_results.log  # Capture output in logs
+          ./test_runner | tee test_results.log
 
       - name: Compile and Run C++ Tests
         if: env.language == 'C++'
@@ -82,7 +84,7 @@ jobs:
         if: env.language == 'Python'
         run: |
           echo "Running Python Test Cases..."
-          python3 tests/test.py | tee test_results.log
+          python3 -m unittest discover -s tests -p "*.py" | tee test_results.log
 
       - name: Compile and Run Java Tests
         if: env.language == 'Java'
