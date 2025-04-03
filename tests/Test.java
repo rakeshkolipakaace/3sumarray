@@ -1,13 +1,13 @@
 package tests;
 
-import solutions.solution;  // ✅ Importing lowercase "solution"
+import solutions.solution;  // ✅ Corrected import (capitalized)
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 public class Test {
-    private static solution solution = new solution();  // ✅ Use lowercase class name
+    private static solution solution = new solution();  // ✅ Corrected class name
 
     private static boolean listsEqual(List<List<Integer>> expected, List<List<Integer>> actual) {
         if (expected.size() != actual.size()) return false;
