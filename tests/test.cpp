@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "solution.cpp"  // Include your solution
-
+#include "../solutions/solution.cpp"
 using namespace std;
 
 void printResult(const vector<vector<int>>& results) {
