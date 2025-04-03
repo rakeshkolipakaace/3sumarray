@@ -1,14 +1,11 @@
-package tests;  // ✅ Added package declaration
+package tests;
 
 import solutions.Solution;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Test {
     static class ThreeSumTest {
-        private Solution solution = new Solution();  // ✅ Fixed class name capitalization
+        private Solution solution = new Solution();  
 
         private boolean listsEqual(List<List<Integer>> expected, List<List<Integer>> actual) {
             if (expected.size() != actual.size()) return false;
