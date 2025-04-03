@@ -303,7 +303,7 @@ jobs:
                 LINE_NUM=$(grep -nE '^\s*public\s+List<List<Integer>>\s+threeSum\s*\(int\[\]\s+nums\)\s*\{' "$file" | cut -d: -f1)
                 END_LINE=$(tail -n +$LINE_NUM "$file" | grep -nE '^\s*\}' | head -n 1 | cut -d: -f1)
                 if [ -n "$END_LINE" ]; then
-                  IMPLEMENTATION=$(tail -n +$((LINE_NUM + 1)) "$file" | head -n $((END_LINE - 2)) | grep -vE '^\s*(//|/\*|*|/|\*\/|$)' | grep -E '^\s*[^\s#].*')
+                  IMPLEMENTATION=$(tail -n +$((LINE_NUM + 1)) "$file" | head -n $((END_LINE - 2)) | grep -vE '^\s*(//|/\*.*\*/$|^$)' | grep -E '^\s*[^\s#].*')
                   if [ -z "$IMPLEMENTATION" ] || ! echo "$IMPLEMENTATION" | grep -qE '^\s*(return\s|if\s|for\s|while\s|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\()(.*)'; then
                     INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
                   fi
