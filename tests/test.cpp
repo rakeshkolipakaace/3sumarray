@@ -110,7 +110,7 @@ bool runTest(int testNumber, vector<int> nums, vector<vector<int>> expected) {
     Solution solution;
     vector<vector<int>> result = solution.threeSum(nums);
 
-    // Sort result and expected for comparison
+    // Sort result and expected for comparison for unordered vectors
     sort(result.begin(), result.end());
     sort(expected.begin(), expected.end());
 
