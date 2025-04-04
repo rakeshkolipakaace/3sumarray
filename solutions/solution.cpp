@@ -2,11 +2,10 @@
 #include <algorithm>
 
 class Solution {
-    // mny constants
 public:
-    std::vector<std::vector<int>> threeSum(std::vector<int>& nums) {
-        std::vector<std::vector<int>> result;
-        std::sort(nums.begin(), nums.end()); // Step 1: Sort the array
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> result;
+        sort(nums.begin(), nums.end()); // Step 1: Sort the array
         
         for (int i = 0; i < nums.size() - 2; i++) {
             if (i > 0 && nums[i] == nums[i - 1]) continue; // Skip duplicate elements
