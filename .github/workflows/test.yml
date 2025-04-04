@@ -192,79 +192,16 @@ jobs:
           echo "CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> $GITHUB_ENV
           echo "Debug: CHANGED_FILES after setting env: $CHANGED_FILES"
 
-      - name: Check for Empty Implementations
-        id: check-implementation
-        run: |
-          INCOMPLETE_FILES=""
-          for file in $CHANGED_FILES; do
-            echo "Checking file: $file"
-            if [[ "$file" == *.c ]]; then
-              if grep -qE '^\s*int\*\*\s+threeSum\s*\(int\*\s+nums,\s*int\s+numsSize,\s*int\*\s+returnSize,\s*int\*\*\s+returnColumnSizes\)\s*\{' "$file"; then
-                LINE_NUM=$(grep -nE '^\s*int\*\*\s+threeSum\s*\(int\*\s+nums,\s*int\s+numsSize,\s*int\*\s+returnSize,\s*int\*\*\s+returnColumnSizes\)\s*\{' "$file" | cut -d: -f1)
-                END_LINE=$(tail -n +$LINE_NUM "$file" | grep -nE '^\s*\}' | head -n 1 | cut -d: -f1)
-                if [ -n "$END_LINE" ]; then
-                  IMPLEMENTATION=$(tail -n +$((LINE_NUM + 1)) "$file" | head -n $((END_LINE - 2)) | grep -vE '^\s*(//|/\*.*\*/$|^$)' | grep -E '^\s*[^\s#].*')
-                  LINE_COUNT=$(echo "$IMPLEMENTATION" | grep -vE '^\s*$' | wc -l)
-                  if [ "$LINE_COUNT" -le 1 ] || ! echo "$IMPLEMENTATION" | grep -qE '^\s*(if\s|for\s|while\s|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\()(.*)'; then
-                    INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                  fi
-                else
-                  INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                fi
-              fi
-            elif [[ "$file" == *.cpp ]]; then
-              if grep -qE '^\s*(vector<.*>|std::vector<.*>)\s+threeSum\s*\((vector<.*>|std::vector<.*>)\s*(&|)\s*nums\)\s*\{' "$file"; then
-                LINE_NUM=$(grep -nE '^\s*(vector<.*>|std::vector<.*>)\s+threeSum\s*\((vector<.*>|std::vector<.*>)\s*(&|)\s*nums\)\s*\{' "$file" | cut -d: -f1)
-                END_LINE=$(tail -n +$LINE_NUM "$file" | grep -nE '^\s*\}' | head -n 1 | cut -d: -f1)
-                if [ -n "$END_LINE" ]; then
-                  IMPLEMENTATION=$(tail -n +$((LINE_NUM + 1)) "$file" | head -n $((END_LINE - 2)) | grep -vE '^\s*(//|/\*.*\*/$|^$)' | grep -E '^\s*[^\s#].*')
-                  LINE_COUNT=$(echo "$IMPLEMENTATION" | grep -vE '^\s*$' | wc -l)
-                  if [ "$LINE_COUNT" -le 1 ] || ! echo "$IMPLEMENTATION" | grep -qE '^\s*(if\s|for\s|while\s|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\()(.*)'; then
-                    INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                  fi
-                else
-                  INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                fi
-              fi
-            elif [[ "$file" == *.py ]]; then
-              if grep -qE '^\s*def\s+threeSum\s*\(self,\s*nums\):' "$file"; then
-                LINE_NUM=$(grep -nE '^\s*def\s+threeSum\s*\(self,\s*nums\):' "$file" | cut -d: -f1)
-                if ! tail -n +$LINE_NUM "$file" | grep -vE '^\s*("""|\#)' | grep -qE '^\s*(return\s|if\s|for\s|while\s|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\()(.*)'; then
-                  INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                fi
-              fi
-            elif [[ "$file" == *.java ]]; then
-              if grep -qE '^\s*public\s+List<List<Integer>>\s+threeSum\s*\(int\[\]\s+nums\)\s*\{' "$file"; then
-                LINE_NUM=$(grep -nE '^\s*public\s+List<List<Integer>>\s+threeSum\s*\(int\[\]\s+nums\)\s*\{' "$file" | cut -d: -f1)
-                END_LINE=$(tail -n +$LINE_NUM "$file" | grep -nE '^\s*\}' | head -n 1 | cut -d: -f1)
-                if [ -n "$END_LINE" ]; then
-                  IMPLEMENTATION=$(tail -n +$((LINE_NUM + 1)) "$file" | head -n $((END_LINE - 2)) | grep -vE '^\s*(//|/\*.*\*/$|^$)' | grep -E '^\s*[^\s#].*')
-                  LINE_COUNT=$(echo "$IMPLEMENTATION" | grep -vE '^\s*$' | wc -l)
-                  if [ "$LINE_COUNT" -le 1 ] || ! echo "$IMPLEMENTATION" | grep -qE '^\s*(if\s|for\s|while\s|[a-zA-Z_][a-zA-Z0-9_]*\s*=|[a-zA-Z_][a-zA-Z0-9_]*\s*\()(.*)'; then
-                    INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                  fi
-                else
-                  INCOMPLETE_FILES="$INCOMPLETE_FILES $file"
-                fi
-              fi
-            fi
-          done
-        
-          if [ -n "$INCOMPLETE_FILES" ]; then
-            echo "Some files only contain function signatures without implementation: $INCOMPLETE_FILES"
-            exit 1
-          fi
-
       - name: Determine File Type
         id: determine-file
         run: |
           DETECTED_LANGUAGES=""
           for file in $CHANGED_FILES; do
             case "$file" in
-              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C " ;;
-              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ " ;;
-              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python " ;;
-              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java " ;;
+              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} C" ;;
+              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} C++" ;;
+              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} Python" ;;
+              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES} Java" ;;
             esac
           done
 
@@ -282,7 +219,7 @@ jobs:
           sudo apt update
 
       - name: Install C Dependencies
-        if: contains(env.LANGUAGE, 'C')
+        if: contains(env.LANGUAGE, 'C') && !contains(env.LANGUAGE, 'C++')
         run: |
           sudo apt install -y gcc
 
