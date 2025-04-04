@@ -190,6 +190,7 @@ jobs:
           fi
 
           echo "CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> $GITHUB_ENV
+          echo "Debug: CHANGED_FILES after setting env: $CHANGED_FILES"
 
       - name: Check for Empty Implementations
         id: check-implementation
@@ -267,7 +268,7 @@ jobs:
             esac
           done
 
-          DETECTED_LANGUAGES=$(echo "$DETECTED_LANGUAGES" | xargs)
+          DETECTED_LANGUAGES=$(echo "$DETECTED_LANGUAGES" | xargs | sort -u)
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
           echo "Detected languages: $DETECTED_LANGUAGES"
 
@@ -276,6 +277,7 @@ jobs:
           echo "LANGUAGE variable: $LANGUAGE"
 
       - name: Update Package Lists
+        if: contains(env.LANGUAGE, 'C') || contains(env.LANGUAGE, 'C++') || contains(env.LANGUAGE, 'Python') || contains(env.LANGUAGE, 'Java')
         run: |
           sudo apt update
 
