@@ -271,28 +271,32 @@ jobs:
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
           echo "Detected languages: $DETECTED_LANGUAGES"
 
+      - name: Debug LANGUAGE Variable
+        run: |
+          echo "LANGUAGE variable: $LANGUAGE"
+
+      - name: Update Package Lists
+        run: |
+          sudo apt update
+
       - name: Install C Dependencies
         if: contains(env.LANGUAGE, 'C')
         run: |
-          sudo apt update
           sudo apt install -y gcc
 
       - name: Install C++ Dependencies
         if: contains(env.LANGUAGE, 'C++')
         run: |
-          sudo apt update
           sudo apt install -y g++
 
       - name: Install Python Dependencies
         if: contains(env.LANGUAGE, 'Python')
         run: |
-          sudo apt update
           sudo apt install -y python3
 
       - name: Install Java Dependencies
         if: contains(env.LANGUAGE, 'Java')
         run: |
-          sudo apt update
           sudo apt install -y openjdk-17-jdk-headless
 
       - name: Compile and Run C Tests
