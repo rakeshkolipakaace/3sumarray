@@ -2,7 +2,7 @@
 #include <algorithm>
 
 class Solution {
-    // mny con
+    // mny constants
 public:
     std::vector<std::vector<int>> threeSum(std::vector<int>& nums) {
         std::vector<std::vector<int>> result;
