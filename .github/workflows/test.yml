@@ -416,7 +416,7 @@ jobs:
               ;;
             "C++")
               if [ -f tests/test.cpp ]; then
-                g++ -std=c++17 tests/test.cpp -o test_runner
+                g++ -std=c++17 -I. tests/test.cpp -o test_runner
                 ./test_runner | tee test_results.log
               else
                 echo "No C++ test file found."
