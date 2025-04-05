@@ -336,10 +336,8 @@
 
 # morning
 
-# Name of the workflow
 name: Run Code Tests
 
-# When to trigger the workflow
 on:
   push:
     paths:
@@ -352,49 +350,94 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Get Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Detect Changed Files
+      - name: Find Changed Files
         id: changed-files
         run: |
           BEFORE_COMMIT="${{ github.event.before }}"
-          [ -z "$BEFORE_COMMIT" ] && BEFORE_COMMIT=$(git rev-parse HEAD~1)
+          if [ -z "$BEFORE_COMMIT" ] || [ "$BEFORE_COMMIT" == "0000000000000000000000000000000000000000" ]; then
+            BEFORE_COMMIT=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
           CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/' || true)
-          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
-          [ -z "$CHANGED_FILES" ] && echo "No solution files changed. Exiting." && exit 1
+          echo "Changed files: $CHANGED_FILES"
 
-      - name: Determine Language
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No solution changes detected. Stopping workflow."
+            exit 1
+          fi
+
+          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+      - name: Detect Language
         run: |
+          LANGUAGE=""
           for file in $CHANGED_FILES; do
             case "$file" in
               *.c) LANGUAGE="C" ;;
               *.cpp) LANGUAGE="C++" ;;
               *.py) LANGUAGE="Python" ;;
               *.java) LANGUAGE="Java" ;;
-              *) echo "Unsupported file: $file" && exit 1 ;;
             esac
           done
+          
+          if [ -z "$LANGUAGE" ]; then
+            echo "No supported language found. Stopping workflow."
+            exit 1
+          fi
+
           echo "LANGUAGE=$LANGUAGE" >> $GITHUB_ENV
+          echo "Chosen language: $LANGUAGE"
 
       - name: Install Dependencies
         run: |
+          sudo apt update
           case "$LANGUAGE" in
-            C) sudo apt update && sudo apt install -y gcc ;;
-            C++) sudo apt update && sudo apt install -y g++ ;;
-            Python) sudo apt update && sudo apt install -y python3 ;;
-            Java) sudo apt update && sudo apt install -y openjdk-17-jdk-headless ;;
+            "C") sudo apt install -y gcc ;;
+            "C++") sudo apt install -y g++ ;;
+            "Python") sudo apt install -y python3 ;;
+            "Java") sudo apt install -y openjdk-17-jdk-headless ;;
           esac
 
       - name: Run Tests
         run: |
           case "$LANGUAGE" in
-            C) [ -f tests/test.c ] && gcc tests/test.c solutions/*.c -o test_runner && ./test_runner | tee test_results.log || echo "No C test file found." ;;
-            C++) [ -f tests/test.cpp ] && g++ -std=c++17 tests/test.cpp solutions/*.cpp -o test_runner && ./test_runner | tee test_results.log || echo "No C++ test file found." ;;
-            Python) [ -f tests/test.py ] && python3 tests/test.py | tee test_results.log || echo "No Python test file found." ;;
-            Java) [ -f tests/Test.java ] && mkdir -p out && javac -d out tests/Test.java solutions/*.java && java -cp out tests.Test | tee test_results.log || echo "No Java test file found." ;;
+            "C")
+              if [ -f tests/test.c ]; then
+                gcc tests/test.c solutions/solution.c -o test_runner
+                ./test_runner | tee test_results.log
+              else
+                echo "No C test file found."
+              fi
+              ;;
+            "C++")
+              if [ -f tests/test.cpp ]; then
+                g++ -std=c++17 tests/test.cpp -o test_runner
+                ./test_runner | tee test_results.log
+              else
+                echo "No C++ test file found."
+              fi
+              ;;
+            "Python")
+              if [ -f tests/test.py ]; then
+                python3 tests/test.py | tee test_results.log
+              else
+                echo "No Python test file found."
+              fi
+              ;;
+            "Java")
+              if [ -f tests/Test.java ]; then
+                mkdir -p out
+                javac -d out tests/Test.java solutions/Solution.java
+                java -cp out tests.Test | tee test_results.log
+              else
+                echo "No Java test file found."
+              fi
+              ;;
           esac
 
       - name: Save Test Results
