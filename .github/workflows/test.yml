@@ -378,6 +378,11 @@ jobs:
           echo "CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> $GITHUB_ENV
           echo "Debug: CHANGED_FILES after setting env: $CHANGED_FILES"
 
+      - name: List All Files in solutions/ Directory
+        run: |
+          echo "Listing all files in solutions/ directory:"
+          ls -l solutions/
+
       - name: Check for Empty Implementations
         id: check-implementation
         run: |
@@ -484,31 +489,31 @@ jobs:
           sudo apt update
 
       - name: Install C Dependencies
-        if: contains(env.LANGUAGE, 'C')
+        if: env.LANGUAGE == 'C'
         run: |
           echo "Installing C dependencies..."
           sudo apt install -y gcc
 
       - name: Install C++ Dependencies
-        if: contains(env.LANGUAGE, 'C++')
+        if: env.LANGUAGE == 'C++'
         run: |
           echo "Installing C++ dependencies..."
           sudo apt install -y g++
 
       - name: Install Python Dependencies
-        if: contains(env.LANGUAGE, 'Python')
+        if: env.LANGUAGE == 'Python'
         run: |
           echo "Installing Python dependencies..."
           sudo apt install -y python3
 
       - name: Install Java Dependencies
-        if: contains(env.LANGUAGE, 'Java')
+        if: env.LANGUAGE == 'Java'
         run: |
           echo "Installing Java dependencies..."
           sudo apt install -y openjdk-17-jdk-headless
 
       - name: Compile and Run C Tests
-        if: contains(env.LANGUAGE, 'C')
+        if: env.LANGUAGE == 'C'
         run: |
           if [ -f tests/test.c ]; then
             echo "Compiling C test cases..."
@@ -520,7 +525,7 @@ jobs:
           fi
 
       - name: Compile and Run C++ Tests
-        if: contains(env.LANGUAGE, 'C++')
+        if: env.LANGUAGE == 'C++'
         run: |
           if [ -f tests/test.cpp ]; then
             echo "Compiling with g++ -std=c++17..."
@@ -533,7 +538,7 @@ jobs:
           fi
 
       - name: Run Python Tests
-        if: contains(env.LANGUAGE, 'Python')
+        if: env.LANGUAGE == 'Python'
         run: |
           if [ -f tests/test.py ]; then
             echo "Running Python Test Cases..."
@@ -543,7 +548,7 @@ jobs:
           fi
 
       - name: Compile and Run Java Tests
-        if: contains(env.LANGUAGE, 'Java')
+        if: env.LANGUAGE == 'Java'
         run: |
           if [ -f tests/Test.java ]; then
             mkdir -p out
