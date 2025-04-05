@@ -42,7 +42,7 @@ public:
                     left++;  // Increase sum by moving left pointer
                 } 
                 else {
-                    right--;  // Decrease sum by moving right pointer
+                    right--;  
                 }
             }
         }
