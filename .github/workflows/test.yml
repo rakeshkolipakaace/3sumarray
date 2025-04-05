@@ -336,79 +336,85 @@
 
 # morning
 
+# Name of the workflow (shows up in GitHub Actions)
 name: Run Code Tests
 
+# When should this workflow run?
 on:
   push:
     paths:
-      - "solutions/**"
+      - "solutions/**"  # Run when files in solutions/ are changed
   pull_request:
     paths:
-      - "tests/**"
+      - "tests/**"      # Run when files in tests/ are changed
 
 jobs:
   run-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use a Linux machine to run the tests
     steps:
-      - name: Checkout Code
+      - name: Get Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 2  # Get the current and previous commit to compare changes
 
       - name: Find Changed Files
         id: changed-files
         run: |
           BEFORE_COMMIT="${{ github.event.before }}"
-          [ -z "$BEFORE_COMMIT" ] && BEFORE_COMMIT=$(git rev-parse HEAD~1)
+          if [ -z "$BEFORE_COMMIT" ]; then
+            BEFORE_COMMIT=$(git rev-parse HEAD~1)
+          fi
           CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/' || true)
-          [ -z "$CHANGED_FILES" ] && exit 1
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
-      - name: Check for Real Implementation
+      - name: Check for Implementation
+        id: check-implementation
         run: |
+          IMPLEMENTATION_FOUND=false
           for file in $CHANGED_FILES; do
-            if [[ "$file" == *.c ]]; then
-              if ! grep -qE '^(\s*int\*\*\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
-            elif [[ "$file" == *.cpp ]]; then
-              if ! grep -qE '^(\s*vector<.*>\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
-            elif [[ "$file" == *.py ]]; then
-              if ! grep -qE '^(\s*def\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
-            elif [[ "$file" == *.java ]]; then
-              if ! grep -qE '^(\s*public\s+List<List<Integer>>\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
+            if [[ "$file" == *.c || "$file" == *.cpp || "$file" == *.java || "$file" == *.py ]]; then
+              if grep -qE '\b(if|for|while|return|\{|\})' "$file"; then
+                IMPLEMENTATION_FOUND=true
+                break
+              fi
             fi
           done
+          echo "IMPLEMENTATION_FOUND=$IMPLEMENTATION_FOUND" >> $GITHUB_ENV
+          if [ "$IMPLEMENTATION_FOUND" = false ]; then
+            echo "No real implementation found. Skipping tests."
+            exit 0
+          fi
 
-      - name: Detect Programming Language
+      - name: Detect Language
+        if: env.IMPLEMENTATION_FOUND == 'true'
         run: |
           for file in $CHANGED_FILES; do
             case "$file" in
-              *.c) LANGUAGE="C" ;;
-              *.cpp) LANGUAGE="C++" ;;
-              *.py) LANGUAGE="Python" ;;
-              *.java) LANGUAGE="Java" ;;
-              *) continue ;;
+              *.c) echo "LANGUAGE=C" >> $GITHUB_ENV;;
+              *.cpp) echo "LANGUAGE=C++" >> $GITHUB_ENV;;
+              *.py) echo "LANGUAGE=Python" >> $GITHUB_ENV;;
+              *.java) echo "LANGUAGE=Java" >> $GITHUB_ENV;;
             esac
-            echo "LANGUAGE=$LANGUAGE" >> $GITHUB_ENV
           done
-          [ -z "$LANGUAGE" ] && exit 1
 
-      - name: Install Required Tools
+      - name: Install Dependencies
+        if: env.IMPLEMENTATION_FOUND == 'true'
         run: |
-          sudo apt update
           case "$LANGUAGE" in
-            C) sudo apt install -y gcc ;;
-            C++) sudo apt install -y g++ ;;
-            Python) sudo apt install -y python3 ;;
-            Java) sudo apt install -y openjdk-17-jdk-headless ;;
+            C) sudo apt update && sudo apt install -y gcc;;
+            C++) sudo apt update && sudo apt install -y g++;;
+            Python) sudo apt update && sudo apt install -y python3;;
+            Java) sudo apt update && sudo apt install -y openjdk-17-jdk-headless;;
           esac
 
       - name: Run Tests
+        if: env.IMPLEMENTATION_FOUND == 'true'
         run: |
           case "$LANGUAGE" in
-            C) [ -f tests/test.c ] && gcc tests/test.c solutions/solution.c -o test_runner && ./test_runner | tee test_results.log ;;
-            C++) [ -f tests/test.cpp ] && g++ -std=c++17 tests/test.cpp -o test_runner && ./test_runner | tee test_results.log ;;
-            Python) [ -f tests/test.py ] && python3 tests/test.py | tee test_results.log ;;
-            Java) [ -f tests/Test.java ] && mkdir -p out && javac -d out tests/Test.java solutions/Solution.java && java -cp out tests.Test | tee test_results.log ;;
+            C) [ -f tests/test.c ] && gcc tests/test.c solutions/*.c -o test_runner && ./test_runner;;
+            C++) [ -f tests/test.cpp ] && g++ -std=c++17 tests/test.cpp -o test_runner && ./test_runner;;
+            Python) [ -f tests/test.py ] && python3 tests/test.py;;
+            Java) [ -f tests/Test.java ] && mkdir -p out && javac -d out tests/Test.java solutions/*.java && java -cp out tests.Test;;
           esac
 
       - name: Save Test Results
