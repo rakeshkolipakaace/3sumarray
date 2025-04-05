@@ -364,13 +364,17 @@ jobs:
           fi
           
           CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/')
-          echo "Detected changed files: $CHANGED_FILES"
+          echo "Detected changed files (raw): $CHANGED_FILES"
           
           if [ -z "$CHANGED_FILES" ]; then
             echo "No file changes detected in solutions/ directory. Exiting..."
             exit 1
           fi
 
+          # Filter to ensure only the latest changed files are considered
+          CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ' | sed 's/ /\n/g' | sort -u)
+          echo "Detected changed files (filtered): $CHANGED_FILES"
+          
           echo "CHANGED_FILES=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> $GITHUB_ENV
           echo "Debug: CHANGED_FILES after setting env: $CHANGED_FILES"
 
@@ -442,17 +446,33 @@ jobs:
         run: |
           DETECTED_LANGUAGES=""
           for file in $CHANGED_FILES; do
+            echo "Processing file: $file"
             case "$file" in
-              *.c) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C " ;;
-              *.cpp) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ " ;;
-              *.py) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python " ;;
-              *.java) DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java " ;;
+              *.c)
+                DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C "
+                echo "Detected language: C for $file"
+                ;;
+              *.cpp)
+                DETECTED_LANGUAGES="${DETECTED_LANGUAGES}C++ "
+                echo "Detected language: C++ for $file"
+                ;;
+              *.py)
+                DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Python "
+                echo "Detected language: Python for $file"
+                ;;
+              *.java)
+                DETECTED_LANGUAGES="${DETECTED_LANGUAGES}Java "
+                echo "Detected language: Java for $file"
+                ;;
+              *)
+                echo "Unknown file type: $file"
+                ;;
             esac
           done
 
           DETECTED_LANGUAGES=$(echo "$DETECTED_LANGUAGES" | xargs | sort -u)
+          echo "Final detected languages: $DETECTED_LANGUAGES"
           echo "LANGUAGE=$DETECTED_LANGUAGES" >> $GITHUB_ENV
-          echo "Detected languages: $DETECTED_LANGUAGES"
 
       - name: Debug LANGUAGE Variable
         run: |
@@ -466,40 +486,32 @@ jobs:
       - name: Install C Dependencies
         if: contains(env.LANGUAGE, 'C')
         run: |
+          echo "Installing C dependencies..."
           sudo apt install -y gcc
 
       - name: Install C++ Dependencies
         if: contains(env.LANGUAGE, 'C++')
         run: |
+          echo "Installing C++ dependencies..."
           sudo apt install -y g++
 
       - name: Install Python Dependencies
         if: contains(env.LANGUAGE, 'Python')
         run: |
+          echo "Installing Python dependencies..."
           sudo apt install -y python3
 
       - name: Install Java Dependencies
         if: contains(env.LANGUAGE, 'Java')
         run: |
+          echo "Installing Java dependencies..."
           sudo apt install -y openjdk-17-jdk-headless
-
-      - name: Create Solution Wrapper Header
-        if: contains(env.LANGUAGE, 'C++')
-        run: |
-          echo "Creating solution_wrapper.h..."
-          cat > solutions/solution_wrapper.h << 'EOF'
-          #ifndef SOLUTION_WRAPPER_H
-          #define SOLUTION_WRAPPER_H
-          #include "solution.cpp"
-          #endif
-          EOF
-          echo "Contents of solution_wrapper.h:"
-          cat solutions/solution_wrapper.h
 
       - name: Compile and Run C Tests
         if: contains(env.LANGUAGE, 'C')
         run: |
           if [ -f tests/test.c ]; then
+            echo "Compiling C test cases..."
             gcc tests/test.c solutions/solution.c -o test_runner
             echo "Running C Test Cases..."
             ./test_runner | tee -a test_results.log
@@ -535,6 +547,7 @@ jobs:
         run: |
           if [ -f tests/Test.java ]; then
             mkdir -p out
+            echo "Compiling Java test cases..."
             javac -d out tests/Test.java solutions/Solution.java
             echo "Running Java Test Cases..."
             java -cp out tests.Test | tee -a test_results.log
