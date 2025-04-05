@@ -483,6 +483,19 @@ jobs:
         run: |
           sudo apt install -y openjdk-17-jdk-headless
 
+      - name: Create Solution Wrapper Header
+        if: contains(env.LANGUAGE, 'C++')
+        run: |
+          echo "Creating solution_wrapper.h..."
+          cat > solutions/solution_wrapper.h << 'EOF'
+          #ifndef SOLUTION_WRAPPER_H
+          #define SOLUTION_WRAPPER_H
+          #include "solution.cpp"
+          #endif
+          EOF
+          echo "Contents of solution_wrapper.h:"
+          cat solutions/solution_wrapper.h
+
       - name: Compile and Run C Tests
         if: contains(env.LANGUAGE, 'C')
         run: |
@@ -499,6 +512,7 @@ jobs:
         run: |
           if [ -f tests/test.cpp ]; then
             echo "Compiling with g++ -std=c++17..."
+            sed -i '1i #include <unordered_map>' tests/test.cpp  # Ensure unordered_map is included
             g++ -std=c++17 tests/test.cpp -o test_runner_cpp
             echo "Running C++ Test Cases..."
             ./test_runner_cpp | tee -a test_results.log
