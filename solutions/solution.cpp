@@ -13,7 +13,7 @@ public:
         
         if (n < 3) return result;
 
-        sort(nums.begin(), nums.end());  // Sort to handle duplicates easily and use two pointers
+        sort(nums.begin(), nums.end());  // Sort to handle duplicates 
 
         for (int i = 0; i < n - 2; i++) {
             if (i > 0 && nums[i] == nums[i - 1]) continue;  // Skip duplicates for i
