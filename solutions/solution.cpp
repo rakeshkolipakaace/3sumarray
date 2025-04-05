@@ -1,34 +1,38 @@
+#include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
+
+using namespace std;
 
 class Solution {
 public:
     vector<vector<int>> threeSum(vector<int>& nums) {
         vector<vector<int>> result;
-        sort(nums.begin(), nums.end()); // Step 1: Sort the array 
+        int n = nums.size();
         
-        for (int i = 0; i < nums.size() - 2; i++) {
-            if (i > 0 && nums[i] == nums[i - 1]) continue; // Skip duplicate elements
+        if (n < 3) return result;
+
+        sort(nums.begin(), nums.end());  // Sort to handle duplicates easily
+
+        for (int i = 0; i < n - 2; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) continue;  // Skip duplicates for i
             
-            int left = i + 1, right = nums.size() - 1;
-            while (left < right) {
-                int sum = nums[i] + nums[left] + nums[right];
+            // Use hash map to find two numbers summing to -nums[i]
+            unordered_map<int, int> seen;
+            int target = -nums[i];
+            
+            for (int j = i + 1; j < n; j++) {
+                int complement = target - nums[j];
                 
-                if (sum == 0) {
-                    result.push_back({nums[i], nums[left], nums[right]});
-                    left++;
-                    right--;
+                if (seen.count(complement)) {
+                    result.push_back({nums[i], complement, nums[j]});
+                    cout << "Found: " << nums[i] << "," << complement << "," << nums[j] << endl;
                     
-                    // Skip duplicate elements
-                    while (left < right && nums[left] == nums[left - 1]) left++;
-                    while (left < right && nums[right] == nums[right + 1]) right--;
-                } 
-                else if (sum < 0) {
-                    left++;
-                } 
-                else {
-                    right--;
+                    // Skip duplicates for nums[j]
+                    while (j + 1 < n && nums[j] == nums[j + 1]) j++;
                 }
+                seen[nums[j]] = j;
             }
         }
         return result;
