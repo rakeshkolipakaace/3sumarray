@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Comparator function for qsort
+// Comparator function for qsort/
 int compare(const void *a, const void *b) {
     return (*(int*)a - *(int*)b);
 }
