@@ -1,6 +1,8 @@
 #include <vector>
 #include <algorithm>
 
+using namespace std;  // Add this to use vector and algorithm without std::
+
 class Solution {
 public:
     vector<vector<int>> threeSum(vector<int>& nums) {
