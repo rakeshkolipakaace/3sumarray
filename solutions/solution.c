@@ -34,7 +34,7 @@ int** threeSum(int* nums, int numsSize, int* returnSize, int** returnColumnSizes
                 (*returnColumnSizes)[*returnSize] = 3;
                 (*returnSize)++;
 
-                // Skip duplicate elements
+             
                 while (left < right && nums[left] == nums[left + 1]) left++;
                 while (left < right && nums[right] == nums[right - 1]) right--;
 
