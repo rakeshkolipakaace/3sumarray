@@ -336,16 +336,15 @@
 
 # morning
 
-# simplified
 name: Run Code Tests
 
 on:
   push:
     paths:
-      - "solutions/"
+      - "solutions/**"
   pull_request:
     paths:
-      - "tests/"
+      - "tests/**"
 
 jobs:
   run-tests:
@@ -364,6 +363,20 @@ jobs:
           CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT" HEAD | grep '^solutions/' || true)
           [ -z "$CHANGED_FILES" ] && exit 1
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+      - name: Check for Real Implementation
+        run: |
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == *.c ]]; then
+              if ! grep -qE '^(\s*int\*\*\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
+            elif [[ "$file" == *.cpp ]]; then
+              if ! grep -qE '^(\s*vector<.*>\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
+            elif [[ "$file" == *.py ]]; then
+              if ! grep -qE '^(\s*def\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
+            elif [[ "$file" == *.java ]]; then
+              if ! grep -qE '^(\s*public\s+List<List<Integer>>\s+threeSum\s*\(|\s*(if|for|while)\s*\()' "$file"; then exit 1; fi
+            fi
+          done
 
       - name: Detect Programming Language
         run: |
