@@ -46,5 +46,5 @@ public:
         }
         
         return result;
-    }// solution ..
+    }// solution ...
 };
