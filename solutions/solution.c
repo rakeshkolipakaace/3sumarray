@@ -50,7 +50,7 @@ int** threeSum(int* nums, int numsSize, int* returnSize, int** returnColumnSizes
             } else if (sum < 0) {
                 left++;  // We need a larger sum, move the left pointer to the right
             } else {
-                right--; // We need a smaller sum, move the right pointer to the left
+                right--; // We need a smaller sum, move the right pointer to the left..
             }
         }
     }
