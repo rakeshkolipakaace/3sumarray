@@ -6,7 +6,7 @@ public class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
        
          List<List<Integer>> result = new ArrayList<>();
-    if (nums == null || nums.length < 3) return result; // ✅ Null check added
+    if (nums == null || nums.length < 3) return result; // ✅ Null check added..
 
     Arrays.sort(nums);
 
