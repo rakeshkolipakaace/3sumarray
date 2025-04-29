@@ -42,7 +42,7 @@ public class Solution {
                 } else if (sum < 0) {
                     left++;  // We need a larger sum, so move the left pointer to the right
                 } else {
-                    right--; // We need a smaller sum, so move the right pointer to the left
+                    right--; // We need a smaller sum, so move the right pointer to the left...
                 }
             }
         }
