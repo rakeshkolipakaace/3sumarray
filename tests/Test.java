@@ -108,6 +108,6 @@ public class Test {
 
     public static void main(String[] args) {
         ThreeSumTest tester = new ThreeSumTest();
-        tester.runAllTests();  // Ensure this method is called to run the tests
+        tester.runAllTests();
     }
 }
